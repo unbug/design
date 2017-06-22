@@ -1,116 +1,103 @@
 # JavaScript API
 
-In the [MVP](MVP.md), the only way to access WebAssembly on the Web is through
-an explicit JS API which is defined below.
-(In the [future :unicorn:][future general], WebAssembly may also
-be loaded and run directly from an HTML `<script type='module'>` tag—and
-any other Web API that loads ES6 modules via URL—as part of 
-[ES6 Module integration](Modules.md#integration-with-es6-modules).)
+[MVP](MVP.md) 里提到， 在 Web 上访问 WebAssembly 的唯一途径是通过显示的 JS API，如下定义。
+(在 [将来 :unicorn:][future general], WebAssembly 也可能 通过一个 HTML `<script type='module'>` 
+标签加载和直接运行，及其他可以通过 URL-作为 [ES6 模块集成](Modules.md#integration-with-es6-modules) 
+的一部分加载 ES6 模块的 Web API.)
 
-WebAssembly JS API declaration file for TypeScript can be found [here](https://github.com/01alchemist/webassembly-types/blob/master/webassembly.d.ts) which enable autocompletion and make TypeScript compiler happy.
+WebAssembly JS API 的 TypeScript 声明文件可以在 
+[这里](https://github.com/01alchemist/webassembly-types/blob/master/webassembly.d.ts)找到，
+它支持自动补全也会使 TypeScript 的编译器收益。
 
-## Traps
+## 陷阱指令
 
-Whenever WebAssembly semantics specify a [trap](Semantics.md#traps),
-a `WebAssembly.RuntimeError` object is thrown. WebAssembly code (currently)
-has no way to catch this exception and thus the exception will necessarily
-propagate to the enclosing non-WebAssembly caller (either the browser or
-JavaScript) where it is handled like a normal JavaScript exception.
+一旦 WebAssembly 的语义标明了一个[陷阱指令](Semantics.md#traps)，就有一个 `WebAssembly.RuntimeError` 对象抛出，
+WebAssembly 代码（当前）是无法捕获这些异常的， 因此这些异常将有必要传播到最近的一个非 WebAssembly 的调用者
+（不是浏览器就是 JavaScript）那像一个常规的 JavaScript 异常一样被处理。
 
-If WebAssembly calls JavaScript via import and the JavaScript throws an
-exception, the exception is propagated through the WebAssembly activation to the
-enclosing caller.
+如果 WebAssembly 通过 import 调用 JavaScript 并且 JavaScript 抛出一个异常，异常自激活的 WebAssembly 传播到其调用者。
 
-Because JavaScript exceptions can be handled, and JavaScript can continue to
-call WebAssembly exports after a trap has been handled, traps do not, in
-general, prevent future execution.
+由于 JavaScript 异常能被捕获处理，捕获陷阱指令后 JavaScript 还能继续调用 WebAssembly 的 export，陷阱指令则不会，
+一般来说就防止了未来代码的执行。
 
-## Stack Overflow
+## 堆栈溢出
 
-Whenever a [stack overflow](Semantics.md#stack-overflow) is happening in
-WebAssembly code, the same exception is thrown as for a stack overflow in
-JavaScript.
+一旦 WebAssembly 代码出现[堆栈溢出](Semantics.md#stack-overflow)，JavaScript 同样会抛出相同的栈溢出异常。
 
-## The `WebAssembly` object
+## `WebAssembly` 对象
 
-The `WebAssembly` object is the initial value of the `WebAssembly` property of
-the global object. Like the `Math` and `JSON` objects, the `WebAssembly` object
-is a plain JS object (not a constructor or function) that acts like a namespace
-and has the following properties:
+`WebAssembly` 对象是全局属性 `WebAssembly` 的值。如 `Math` 和 `JSON` 对象，`WebAssembly` 对象也是一个 JS 对象字面量
+ （非构造器或函数）在其命名空间里有以下属性：
 
-### `WebAssembly [ @@toStringTag ]` Property
+### `WebAssembly [ @@toStringTag ]` 对象属性
 
-The initial value of the [`@@toStringTag`](https://tc39.github.io/ecma262/#sec-well-known-symbols)
-property is the String value `"WebAssembly"`.
+[`@@toStringTag`](https://tc39.github.io/ecma262/#sec-well-known-symbols) 属性的初始值是字符串 `"WebAssembly"`.
 
-This property has the attributes { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `true` }.
+属相特征属性有 { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `true` }.
 
-### Constructor Properties of the `WebAssembly` object
+### `WebAssembly` 对象的构造器属相
 
-The following intrinsic objects are added:
+已有的对象
 
-* `WebAssembly.Module` : the [`WebAssembly.Module` constructor](#webassemblymodule-constructor)
-* `WebAssembly.Instance` : the [`WebAssembly.Instance` constructor](#webassemblyinstance-constructor)
-* `WebAssembly.Memory` : the [`WebAssembly.Memory` constructor](#webassemblymemory-constructor)
-* `WebAssembly.Table` : the [`WebAssembly.Table` constructor](#webassemblytable-constructor)
-* `WebAssembly.CompileError` : a [NativeError](http://tc39.github.io/ecma262/#sec-nativeerror-object-structure)
-   which indicates an error during WebAssembly decoding or validation
-* `WebAssembly.LinkError` : a [NativeError](http://tc39.github.io/ecma262/#sec-nativeerror-object-structure)
-   which indicates an error during WebAssembly instantiating a module (other than traps from the start function)
-* `WebAssembly.RuntimeError` : a [NativeError](http://tc39.github.io/ecma262/#sec-nativeerror-object-structure)
-   which is thrown whenever WebAssembly specifies a [trap](#traps).
+* `WebAssembly.Module` : [`WebAssembly.Module` 构造器](#webassemblymodule-constructor)
+* `WebAssembly.Instance` : [`WebAssembly.Instance` 构造器](#webassemblyinstance-constructor)
+* `WebAssembly.Memory` : [`WebAssembly.Memory` 构造器](#webassemblymemory-constructor)
+* `WebAssembly.Table` : [`WebAssembly.Table` 构造器](#webassemblytable-constructor)
+* `WebAssembly.CompileError` : [NativeError](http://tc39.github.io/ecma262/#sec-nativeerror-object-structure)
+   WebAssembly 解码或校验过程中产生了 error
+* `WebAssembly.LinkError` : [NativeError](http://tc39.github.io/ecma262/#sec-nativeerror-object-structure)
+   WebAssembly 实例化模块时产生了 error （相较于开始函数的陷阱指令产生的）
+* `WebAssembly.RuntimeError` : [NativeError](http://tc39.github.io/ecma262/#sec-nativeerror-object-structure)
+   WebAssembly 遇到任何[陷阱指令](#traps) 是产生.
 
-### Function Properties of the `WebAssembly` object
+### `WebAssembly` 对象的函数属相
 
 #### `WebAssembly.validate`
 
-The `validate` function has the signature:
+`validate` 函数的签名为:
 
 ```
 Boolean validate(BufferSource bytes)
 ```
 
-If the given `bytes` argument is not a
-[`BufferSource`](https://heycam.github.io/webidl/#common-BufferSource),
-then a `TypeError` is thrown.
+如果给定的 `bytes` 参数不是个
+[`BufferSource`](https://heycam.github.io/webidl/#common-BufferSource)，会抛出 `TypeError`.
 
-Otherwise, this function performs *validation* as defined by the [WebAssembly
-specification](https://github.com/WebAssembly/spec/blob/master/interpreter/) and returns `true` if validation succeeded, `false` if validation failed.
+否则， 此函数的**校验**会和 [WebAssembly
+specification](https://github.com/WebAssembly/spec/blob/master/interpreter/)中定义的一样，校验成功会返回 `true`，
+失败返回 `false` 。
 
 #### `WebAssembly.compile`
 
-The `compile` function has the signature:
+`compile` 函数的签名为:
 
 ```
 Promise<WebAssembly.Module> compile(BufferSource bytes)
 ```
 
-If the given `bytes` argument is not a
-[`BufferSource`](https://heycam.github.io/webidl/#common-BufferSource),
-the returned `Promise` is [rejected](http://tc39.github.io/ecma262/#sec-rejectpromise)
-with a [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror).
+如果给定的 `bytes` 参数不是个
+[`BufferSource`](https://heycam.github.io/webidl/#common-BufferSource)，
+返回的 `Promise` 是就被 [rejected](http://tc39.github.io/ecma262/#sec-rejectpromise)
+成了 [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)。
 
-Otherwise, this function starts an asynchronous task to compile a `WebAssembly.Module`
-as described in the [`WebAssembly.Module` constructor](#webassemblymodule-constructor).
-On success, the `Promise` is [fulfilled](http://tc39.github.io/ecma262/#sec-fulfillpromise)
-with the resulting `WebAssembly.Module` object. On failure, the `Promise` is 
-[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise) with a 
-`WebAssembly.CompileError`.
+否侧，此函数会如 [`WebAssembly.Module` 构造器](#webassemblymodule-constructor) 里所描述的开始异步编译 `WebAssembly.Module`。
+成功 `Promise` 就被 [fulfilled](http://tc39.github.io/ecma262/#sec-fulfillpromise)
+成 `WebAssembly.Module` 对象。失败，`Promise` 就被
+[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise) 成 
+`WebAssembly.CompileError`。
 
-The asynchronous compilation is logically performed on a copy of the state of
-the given `BufferSource` captured during the call to `compile`; subsequent mutations
-of the `BufferSource` after `compile` return do not affect ongoing compilations.
+异步编译逻辑表现为，对给定的 `BufferSource` 在调用 `compile` 过程中进行状态拷贝； `BufferSource` 在 `compile` 
+返回前的突变不会影响正在进行的编译。
 
-In the [future :unicorn:][future streaming], this function can be
-extended to accept a [stream](https://streams.spec.whatwg.org), thereby enabling
-asynchronous, background, streaming compilation.
+据 [未来 :unicorn:][future streaming]， 此方法可以被扩展并接受 [stream](https://streams.spec.whatwg.org)，
+ 因此支持异步，后台运行，流编译。
 
 #### `WebAssembly.instantiate`
 
-The `instantiate` function is overloaded based on types of its arguments.
-If neither of the following overloads match, then the returned `Promise` is
-[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise)
-with a [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror).
+`instantiate` 函数会根据参数类型被重载。
+若以下重载方案都不匹配，返回的 `Promise` 会被
+[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise) 成
+ [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror).
 
 ```
 dictionary WebAssemblyInstantiatedSource {
@@ -122,33 +109,30 @@ Promise<WebAssemblyInstantiatedSource>
   instantiate(BufferSource bytes [, importObject])
 ```
 
-If the given `bytes` argument is not a
+如果给定的 `bytes` 参数不是个
 [`BufferSource`](https://heycam.github.io/webidl/#common-BufferSource),
-the returned `Promise` is [rejected](http://tc39.github.io/ecma262/#sec-rejectpromise)
-with a [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror).
+返回的 `Promise` 会被 [rejected](http://tc39.github.io/ecma262/#sec-rejectpromise)
+成 [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror).
 
-This function starts an asynchronous task that first compiles a `WebAssembly.Module`
-from `bytes` as described in the [`WebAssembly.Module` constructor](#webassemblymodule-constructor)
-and then queue a task to instantiate the resulting `Module` with `importObject` as described in the
-[`WebAssembly.Instance` constructor](#webassemblyinstance-constructor). After the instantiation task runs
-and before any subsequent steps are taken, other unspecified asynchronous tasks may be run.
-On success, the `Promise` is [fulfilled](http://tc39.github.io/ecma262/#sec-fulfillpromise)
-with a plain JavaScript object pair `{module, instance}` containing the resulting
-`WebAssembly.Module` and `WebAssembly.Instance`. The 2 properties `module` and `instance` of the returned pair are  configurable, enumerable and writable. 
+此函数会如 [`WebAssembly.Module` 构造器](#webassemblymodule-constructor) 里所描述的开始异步编译 `WebAssembly.Module`，
+然后开始队列如 [`WebAssembly.Instance` 构造器](#webassemblyinstance-constructor) 中描述的用 `importObject` 
+实例化 `Module` 的结果。实例化后且在进行下一步前任何其他异步任务都可能被运行。成功，
+`Promise` 会被 [fulfilled](http://tc39.github.io/ecma262/#sec-fulfillpromise)
+一个 `{module, instance}` 对象，含有 `WebAssembly.Module` 和 `WebAssembly.Instance`。
+ `module` 和 `instance` 属性特征都是 configurable, enumerable 和 writable。
 
-On failure, the `Promise` is
-[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise) with a 
-`WebAssembly.CompileError`, `WebAssembly.LinkError`, or `WebAssembly.RuntimeError`, depending on the cause of failure.
+失败，`Promise` 会被
+[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise) 成
+`WebAssembly.CompileError`， `WebAssembly.LinkError`， 或 `WebAssembly.RuntimeError`，取决于失败的场景。
 
-The asynchronous compilation is logically performed on a copy of the state of
-the given `BufferSource` captured during the call to `instantiate`; subsequent mutations
-of the `BufferSource` after `instantiate` return do not affect ongoing compilations.
+异步编译逻辑表现为，对给定的 `BufferSource` 在调用 `compile` 过程中进行状态拷贝； `BufferSource` 在 `compile` 
+返回前的突变不会影响正在进行的编译。
 
 ```
 Promise<WebAssembly.Instance> instantiate(moduleObject [, importObject])
 ```
 
-This description applies if the first argument is a `WebAssembly.Module` instance.
+以上只会在第一个参数是 `WebAssembly.Module` 实例时应用。
 
 This function asynchronously queues a task that instantiates a `WebAssembly.Instance`
 from `moduleObject` and `importObject` as described in the
