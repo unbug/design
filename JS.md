@@ -54,7 +54,7 @@ WebAssembly 代码（当前）是无法捕获这些异常的， 因此这些异�
 
 #### `WebAssembly.validate`
 
-`validate` 函数的签名为:
+`validate` 函数的特征为:
 
 ```
 Boolean validate(BufferSource bytes)
@@ -69,7 +69,7 @@ specification](https://github.com/WebAssembly/spec/blob/master/interpreter/)中�
 
 #### `WebAssembly.compile`
 
-`compile` 函数的签名为:
+`compile` 函数的特征为:
 
 ```
 Promise<WebAssembly.Module> compile(BufferSource bytes)
@@ -134,46 +134,39 @@ Promise<WebAssembly.Instance> instantiate(moduleObject [, importObject])
 
 以上只会在第一个参数是 `WebAssembly.Module` 实例时应用。
 
-This function asynchronously queues a task that instantiates a `WebAssembly.Instance`
-from `moduleObject` and `importObject` as described in the
-[`WebAssembly.Instance` constructor](#webassemblyinstance-constructor). After the instantiation task runs
-and before any subsequent steps are taken, other unspecified asynchronous tasks may be run.
-On success, the `Promise` is [fulfilled](http://tc39.github.io/ecma262/#sec-fulfillpromise)
-with the resulting `WebAssembly.Instance` object. On failure, the `Promise` is
-[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise) with a 
-`WebAssembly.CompileError`, `WebAssembly.LinkError`, or `WebAssembly.RuntimeError`, depending on the cause of failure.
+此函数会如 [`WebAssembly.Instance` 构造器](#webassemblyinstance-constructor) 所述异步运行一个任务来通过
+`moduleObject` 和 `importObject` 实例化 `WebAssembly.Instance`。实例化后且在进行下一步前任何其他异步任务都可能被运行。成功，
+`Promise` 会被 [fulfilled](http://tc39.github.io/ecma262/#sec-fulfillpromise)
+一个 `WebAssembly.Instance` 对象。失败，`Promise` 会被
+[rejected](http://tc39.github.io/ecma262/#sec-rejectpromise) 成
+`WebAssembly.CompileError`， `WebAssembly.LinkError`， 或 `WebAssembly.RuntimeError`，取决于失败的场景。
 
-## `WebAssembly.Module` Objects
+## `WebAssembly.Module` 对象
 
-A `WebAssembly.Module` object represents the stateless result of compiling a
-WebAssembly binary-format module and contains one internal slot:
+`WebAssembly.Module` 对象反应的是编译 WebAssembly 二进制格式模块后的无状态结果，包含一个内部占位:
 
- * [[Module]] : an [`Ast.module`](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L176)
-   which is the spec definition of a module
+ * [[Module]] : 一个特别声明的 [`Ast.module`](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L176)
 
-### `WebAssembly.Module` Constructor
+### `WebAssembly.Module` 构造器
 
-The `WebAssembly.Module` constructor has the signature:
+`WebAssembly.Module` 构造器的特征为:
 
 ```
 new Module(BufferSource bytes)
 ```
 
-If the NewTarget is `undefined`, a [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
-exception is thrown (i.e., this constructor cannot be called as a function without `new`).
+若 NewTarget 是 `undefined`，会抛一个 [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
+异常 （即，此构造器不能当函数来叫，只能 `new`）。
 
-If the given `bytes` argument is not a
+如果给定的 `bytes` 参数不是个
 [`BufferSource`](https://heycam.github.io/webidl/#common-BufferSource),
-a [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
-exception is thrown.
+会抛出一个 [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
+异常。
 
-Otherwise, this function performs synchronous compilation of the `BufferSource`:
+否则，此函数表现为 `BufferSource` 的异步编译:
 
-1. The byte range delimited by the `BufferSource` is first logically decoded 
-   according to [BinaryEncoding.md](BinaryEncoding.md) and then validated
-   according to the rules in [spec/valid.ml](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/valid.ml#L415).
-1. The spec `string` values inside `Ast.module` are decoded as UTF8 as described in 
-   [Web.md](Web.md#names).
+1. 字节范围会被 `BufferSource` 分隔是首要解码逻辑，依据了 [BinaryEncoding.md](BinaryEncoding.md)，校验规则依据 [spec/valid.ml](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/valid.ml#L415)。
+1. `string` 的值在 `Ast.module` 内解码成 UTF8，依据 [Web.md](Web.md#names)。
 1. On success, a new `WebAssembly.Module` object is returned with [[Module]] set to
    the validated `Ast.module`.
 1. On failure, a new `WebAssembly.CompileError` is thrown.
