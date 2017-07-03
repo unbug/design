@@ -33,7 +33,7 @@ WebAssembly 代码（当前）是无法捕获这些异常的， 因此这些异�
 
 [`@@toStringTag`](https://tc39.github.io/ecma262/#sec-well-known-symbols) 属性的初始值是字符串 `"WebAssembly"`.
 
-属相特征属性有 { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `true` }.
+本属性特征属性有 { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `true` }.
 
 ### `WebAssembly` 对象的构造器属相
 
@@ -166,60 +166,58 @@ new Module(BufferSource bytes)
 否则，此函数表现为 `BufferSource` 的异步编译:
 
 1. 字节范围会被 `BufferSource` 分隔是首要解码逻辑，依据了 [BinaryEncoding.md](BinaryEncoding.md)，校验规则依据 [spec/valid.ml](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/valid.ml#L415)。
-1. `string` 的值在 `Ast.module` 内解码成 UTF8，依据 [Web.md](Web.md#names)。
-1. On success, a new `WebAssembly.Module` object is returned with [[Module]] set to
-   the validated `Ast.module`.
-1. On failure, a new `WebAssembly.CompileError` is thrown.
+1. `string` 的值在 `Ast.module` 内解码成 UTF8，依据了 [Web.md](Web.md#names)。
+1. 成功，会返回一个 `WebAssembly.Module` 对象，含有 [[Module]] 属性与 `Ast.module` 里设置的相同。
+1. 失败，会抛出 `WebAssembly.CompileError` 异常。
 
-### `WebAssembly.Module.prototype [ @@toStringTag ]` Property
+### `WebAssembly.Module.prototype [ @@toStringTag ]` 属性
 
-The initial value of the [`@@toStringTag`](https://tc39.github.io/ecma262/#sec-well-known-symbols)
-property is the String value `"WebAssembly.Module"`.
+[`@@toStringTag`](https://tc39.github.io/ecma262/#sec-well-known-symbols) 初始值是 `"WebAssembly.Module"` 的值。
 
-This property has the attributes { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `true` }.
+本属性特征属性有 { [[Writable]]: `false`, [[Enumerable]]: `false`, [[Configurable]]: `true` }.
 
 ### `WebAssembly.Module.exports`
 
-The `exports` function has the signature:
+`exports` 函数的特征：
 
 ```
 Array exports(moduleObject)
 ```
 
-If `moduleObject` is not a `WebAssembly.Module`, a [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
-is thrown.
+如 `moduleObject` 不是一个 `WebAssembly.Module`，会抛出 [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
+异常。
 
-This function returns a new `Array` every time it is called. Each such `Array` is produced by mapping each
+每次调用此函数它都返回一个新的 `Array`。这样的 `Array` 的产生方式是将每个
 [`Ast.export`](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L152)
-`e` of [moduleObject.[[Module]].exports](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L187)
-to the Object `{ name: String(e.name), kind: e.ekind }` where `e.name` is [decoded as UTF8](Web.md#names)
-and `e.ekind` is mapped to one of the String values `"function"`, `"table"`, `"memory"`, `"global"`.
+`e` 属于 [moduleObject.[[Module]].exports](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L187)
+映射到 `{ name: String(e.name), kind: e.ekind }` 对象，此 `e.name` 是 [decoded as UTF8](Web.md#names)
+，`e.ekind` 映射的值是这些字符串 `"function"`, `"table"`, `"memory"`, `"global"` 中的一个。
 
-Note: other fields like `signature` may be added in the future.
+注意：其他字段，如 `signature` 日后可能会被添加进来。
 
-The returned `Array` is populated in the same order exports appear in the WebAssembly binary's exports table.
+返回的 `Array` export 顺序与 WebAssembly 二进制的 export 列表相同。
 
 ### `WebAssembly.Module.imports`
 
-The `imports` function has the signature:
+`imports` 函数的特征：
 
 ```
 Array imports(moduleObject)
 ```
 
-If `moduleObject` is not a `WebAssembly.Module`, a [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
-is thrown.
+如 `moduleObject` 不是一个 `WebAssembly.Module`，会抛出 [`TypeError`](https://tc39.github.io/ecma262/#sec-native-error-types-used-in-this-standard-typeerror)
+异常。
 
-This function returns a new `Array` every time it is called. Each such `Array` is produced by mapping each
+每次调用此函数它都返回一个新的 `Array`。这样的 `Array` 的产生方式是将每个
 [`Ast.import`](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L167)
-`i` of [moduleObject.[[Module]].imports](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L203)
-to the Object `{ module: String(i.module_name), name: String(i.item_name), kind: i.ikind }` where
-`i.module_name` and `i.item_name` are  [decoded as UTF8](Web.md#names) and
-`i.ikind` is mapped to one of the String values `"function"`, `"table"`, `"memory"`, `"global"`.
+`i` 属于 [moduleObject.[[Module]].imports](https://github.com/WebAssembly/spec/blob/master/interpreter/spec/ast.ml#L203)
+映射到 `{ module: String(i.module_name), name: String(i.item_name), kind: i.ikind }` 对象，此
+`i.module_name` 和 `i.item_name` 是  [decoded as UTF8](Web.md#names)，
+`i.ikind` 映射的值是这些字符串 `"function"`, `"table"`, `"memory"`, `"global"` 中的一个。
 
-Note: other fields like `signature` may be added in the future.
+注意：其他字段，如 `signature` 日后可能会被添加进来。
 
-The returned `Array` is populated in the same order imports appear in the WebAssembly binary's imports table.
+返回的 `Array` import 顺序与 WebAssembly 二进制的 import 列表相同。
 
 ### `WebAssembly.Module.customSections`
 
